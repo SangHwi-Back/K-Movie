@@ -22,7 +22,7 @@ class MyURLSession: URLSession, URLSessionDataDelegate {
         }
     }
     
-    func startLoad(requestDataType: RequestMovieDataType, _ completionHandler: @escaping (DailyBoxOfficeResult?) -> Void) {
+    func startLoad(requestDataType: RequestMovieDataType, _ completionHandler: @escaping (DailyBoxOfficeResult?) -> Void, errorHandler: @escaping (ErrorInBoxOfficeUseCases) -> Void) {
         guard let qualifiedURL = qualifiedURL, let url = URL(string: qualifiedURL) else { return }
         
         let task = self.session.dataTask(with: url) { (data, response, error) in
@@ -35,9 +35,12 @@ class MyURLSession: URLSession, URLSessionDataDelegate {
             
             // JSON데이터 호출부. 맨 마지막 completionHandler 를 호출함.
             DispatchQueue.main.async {
-                if let data = data,
-                    let product = try? self.decoder.decode(DailyBoxOfficeData.self, from: data) {
-                    completionHandler(product.boxOfficeResult)
+                if let data = data {
+                    if let product = try? self.decoder.decode(DailyBoxOfficeData.self, from: data) {
+                        completionHandler(product.boxOfficeResult)
+                    } else {
+                        errorHandler(.dataDecodingError)
+                    }
                 }
             }
         }

@@ -9,6 +9,11 @@
 import Foundation
 import UIKit
 
+enum ErrorInBoxOfficeUseCases {
+    case apiKeyError
+    case dataDecodingError
+}
+
 class BoxOfficeUseCases {
     
     var results: DailyBoxOfficeResult?
@@ -23,10 +28,15 @@ class BoxOfficeUseCases {
     }
     
     // loadData. url 구성 후 URLSession 클래스의 startLoad함수 실행.
-    func loadData(type: RequestMovieDataType, _ completionHandler: @escaping (DailyBoxOfficeResult?) -> Void) {
+    func loadData(type: RequestMovieDataType, _ completionHandler: @escaping (DailyBoxOfficeResult?) -> Void, errorHandler: @escaping (ErrorInBoxOfficeUseCases) -> Void) {
+        guard let apiKey = key else {
+            errorHandler(.apiKeyError)
+            return
+        }
+        
         myURLSession?.qualifiedURL = url
-        myURLSession?.updateURLParameter(key: "key", value: "0e559fe678175166222903f2123ec644")
+        myURLSession?.updateURLParameter(key: "key", value: apiKey)
         myURLSession?.updateURLParameter(key: "targetDt", value: "20200903")
-        self.myURLSession?.startLoad(requestDataType: .dailyBoxOffice, completionHandler)
+        self.myURLSession?.startLoad(requestDataType: .dailyBoxOffice, completionHandler, errorHandler: errorHandler)
     }
 }
